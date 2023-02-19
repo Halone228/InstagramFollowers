@@ -6,7 +6,10 @@ authors = ["Kirill <randomnik192@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.10"
+instagrapi = "^1.16.41"
+peewee = "^3.15.4"
+tqdm = "^4.64.1"
 
 
 [build-system]
