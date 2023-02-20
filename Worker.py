@@ -1,22 +1,43 @@
+import asyncio
+import random
+
 from instagrapi import types as igaTypes
 from instagrapi import Client
 from instagrapi import exceptions
 from fake_useragent import UserAgent
 
+
 class Worker:
 
     def relogin_dec(func):
-        num_count = 10
-        def wrapper(self,*args,**kwargs):
+
+
+        def wrapper(self, *args, **kwargs):
+            num_count = 10
             cnt = 0
-            while cnt<num_count: 
+            while cnt < num_count:
                 try:
-                    return func(self,*args,**kwargs)
+                    return func(self, *args, **kwargs)
                 except exceptions.LoginRequired:
                     self.relogin()
                     cnt += 1
                     print('Relogin')
             raise exceptions.LoginRequired()
+
+        return wrapper
+
+    def wait_dec(func):
+
+        async def wrapper(self, *args, **kwargs):
+            num_count = 10
+            cnt = 0
+            while cnt < num_count:
+                try:
+                    return func(self, *args, **kwargs)
+                except exceptions.PleaseWaitFewMinutes:
+                    print('wait')
+                    await asyncio.sleep(random.randint(1200,1800))
+                    cnt += 1
         return wrapper
 
     def __init__(self, *, proxy=None, login, password):
@@ -33,7 +54,7 @@ class Worker:
 
     def logout(self):
         self.client.logout()
-    
+
     def relogin(self):
         self.client.relogin()
 

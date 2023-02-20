@@ -37,7 +37,7 @@ class Manager:
         self.clients_queue = Queue()
         self.pattern = f"({'|'.join([f'({i})' for i in keywords])})"
         self.working = True
-        self.test = True
+        self.test = False
         self.logger = getLogger(__name__)
         self.loading = None
         self.workers = []
@@ -46,6 +46,7 @@ class Manager:
             if not i[0]: continue
             proxy = random.choice(proxies)
             print(i)
+            print(proxy)
             self.logger.info(f'Using proxy {proxy}')
             self.workers.append(Worker(
                 login=i[0],
