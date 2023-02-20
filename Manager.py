@@ -43,6 +43,7 @@ class Manager:
         self.workers = []
         proxies.append(None)
         for i in accounts:
+            if not i[0]: continue
             proxy = random.choice(proxies)
             print(i)
             self.logger.info(f'Using proxy {proxy}')
