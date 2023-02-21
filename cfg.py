@@ -10,6 +10,8 @@ with open('proxies.txt', 'r', encoding='utf-8') as f:
 
 # account to parse link
 account_to_parse = "https://www.instagram.com/vasilyeva.stylist/?igshid=YmMyMTA2M2Y%3D"  #
+
+
 parsed_username = re.sub(r'https:\/\/www\.instagram\.com\/(.+)\/.+', lambda m: m.group(1), account_to_parse)
 
 # keywords for description

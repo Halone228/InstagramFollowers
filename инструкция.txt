@@ -1,0 +1,10 @@
+=====ИНСТРУКЦИЯ ПО ПОЛЬЗОВАНИЮ=====
+1. Скачать python (https://www.python.org/ftp/python/3.11.2/python-3.11.2-amd64.exe)
+2. Выполнить команду: bash install.bash
+3. Заполнить accounts.txt и proxies.txt
+4. Запустить программу: poetry run python main.py
+===================================
+Формат заполнения accounts.txt: <username>:<password>
+Формат заполнения proxies.txt: <protocol>://<ip>:<port> или <protocol>://<username>:<password>@<ip>:<port>
+В файле cfg.py можно корректировать слова и аккаунт для парсинга
+Файл db хранит все ранее спаршенные аккаунты и найденные слова, его по необходимости можно удалять(парсинг с чистого листа:D)

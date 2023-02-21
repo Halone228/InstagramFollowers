@@ -3,7 +3,8 @@ import logging
 from cfg import *
 from Worker import Worker
 from instagrapi.types import UserShort
-from asyncio import Queue
+from threading import Thread
+from queue import Queue
 import re
 from pydantic import BaseModel, validator
 from logging import basicConfig, getLogger
@@ -34,7 +35,6 @@ class Manager:
     def __init__(self):
         self.loop = asyncio.get_event_loop()
         self.accounts_queue = Queue()
-        self.clients_queue = Queue()
         self.pattern = f"({'|'.join([f'({i})' for i in keywords])})"
         self.working = True
         self.test = False
@@ -45,6 +45,7 @@ class Manager:
         for i in accounts:
             if not i[0]: continue
             proxy = random.choice(proxies)
+            proxies.pop(proxies.index(proxy))
             print(i)
             print(proxy)
             self.logger.info(f'Using proxy {proxy}')
@@ -68,24 +69,24 @@ class Manager:
             return res.group()
         return ''
     
-    async def add_account(self, v: acc_T):
+    def add_account(self, v: acc_T):
         """
         Add account to abstract container for processing
         :param v: 
         :return: 
         """
-        await self.accounts_queue.put(v)
+        self.accounts_queue.put(v)
 
-    async def get_account(self):
+    def get_account(self):
         """
         Return account from abstract container
         :return: `acc_T`
         """
-        item = await self.accounts_queue.get()
+        item = self.accounts_queue.get()
         self.accounts_queue.task_done()
         return item
 
-    async def append_result(self, v: res_T):
+    def append_result(self, v: res_T):
         assert type(v) == res_T, "Not correct result var"
         ResultItemModel.add_if_not_exists(**v.dict())
 
@@ -93,7 +94,7 @@ class Manager:
     def url_format(username: str):
         return f'https://www.instagram.com/{username}/'
 
-    async def get_followers(self, username: str):
+    def get_followers(self, username: str):
         """
         Uses instaloader for get user followers and push into `accounts_queue`
         :param username: user username
@@ -106,17 +107,17 @@ class Manager:
         self.loading = tqdm(total=int(count))
         for i in users:
             self.logger.info(f'Get user {i.username}')
-            await self.add_account(i)
+            self.add_account(i)
         self.working = False
 
-    async def worker_job(self, worker: Worker):
+    def worker_job(self, worker: Worker):
         """
         Default work for worker
         :param worker:
         :return:
         """
         while self.working or not self.accounts_queue.empty():
-            job: acc_T = await self.get_account()
+            job: acc_T = self.get_account()
             if Checked.is_exists(self.url_format(job.username)):
                 self.loading.update()
                 continue
@@ -124,7 +125,7 @@ class Manager:
             self.logger.info(f'Get info about {user.username}')
             word = self.is_need_biography(user.biography)
             if word:
-                await self.append_result(res_T(
+                self.append_result(res_T(
                     url=self.url_format(user.username),
                     word=word
                 ))
@@ -132,10 +133,13 @@ class Manager:
             self.loading.update()
 
     def run(self):
-        self.loop.run_until_complete(self.get_followers(parsed_username))
-        self.loop.run_until_complete(asyncio.gather(*[
-            self.loop.create_task(self.worker_job(worker)) for worker in self.workers]
-        ))
+        self.get_followers(parsed_username)
+        process = []
+        for i in self.workers:
+            p = Thread(target=self.worker_job, args=(i,))
+            p.start()
+            process.append(p)
+        process[0].join()
 
 
 if __name__ == '__main__':

@@ -6,3 +6,4 @@ bot.log
 /.idea/inspectionProfiles/Project_Default.xml
 /result.pkl
 /.idea/vcs.xml
+__pycache__
