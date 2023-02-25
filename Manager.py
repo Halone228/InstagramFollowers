@@ -20,6 +20,7 @@ acc_T = UserShort
 class ResultItem(BaseModel):
     url: str
     word: str
+    username: str
 
     @validator('url')
     def is_need_url(cls, v):
@@ -35,17 +36,17 @@ class Manager:
     def __init__(self):
         self.loop = asyncio.get_event_loop()
         self.accounts_queue = Queue()
+        self.clients = Queue()
+        [self.clients.put(i) for i in accounts]
         self.pattern = f"({'|'.join([f'({i})' for i in keywords])})"
         self.working = True
         self.test = False
         self.logger = getLogger(__name__)
         self.loading = None
         self.workers = []
-        proxies.append(None)
-        for i in accounts:
-            if not i[0]: continue
-            proxy = random.choice(proxies)
-            proxies.pop(proxies.index(proxy))
+        proxies.append(None) if not len(proxies) else None
+        for proxy in proxies:
+            i = self.clients.get()
             print(i)
             print(proxy)
             self.logger.info(f'Using proxy {proxy}')
@@ -117,20 +118,32 @@ class Manager:
         :return:
         """
         while self.working or not self.accounts_queue.empty():
-            job: acc_T = self.get_account()
-            if Checked.is_exists(self.url_format(job.username)):
+            try:
+                job: acc_T = self.get_account()
+                if Checked.is_exists(self.url_format(job.username)):
+                    self.loading.update()
+                    continue
+                user = worker.get_account_info(job.pk)
+                self.logger.info(f'Get info about {user.username}')
+                word = self.is_need_biography(user.biography)
+                if word:
+                    self.append_result(res_T(
+                        url=self.url_format(user.username),
+                        word=word,
+                        username=parsed_username
+                    ))
+                Checked.get_or_create(url=self.url_format(user.username))
                 self.loading.update()
-                continue
-            user = worker.get_account_info(job.pk)
-            self.logger.info(f'Get info about {user.username}')
-            word = self.is_need_biography(user.biography)
-            if word:
-                self.append_result(res_T(
-                    url=self.url_format(user.username),
-                    word=word
-                ))
-            Checked.get_or_create(url=self.url_format(user.username))
-            self.loading.update()
+            except e:
+                self.logger.error('Worker caught error ', e)
+                print(f'Worker {worker.username} caught error, changing account')
+                if self.clients.empty():
+                    print('No free clients, stop worker')
+                    return
+                i = self.clients.get()
+                worker.set_account(login=i[0], password=i[1])
+                self.logger.info(f'Worker changed to {worker.username}')
+                print(f'Worker changed to {worker.username}')
 
     def run(self):
         self.get_followers(parsed_username)

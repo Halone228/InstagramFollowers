@@ -8,6 +8,7 @@ class ResultItemModel(Model):
 
     url = TextField(primary_key=True)
     word = TextField()
+    username = TextField()
 
     @classmethod
     def add_if_not_exists(cls, **kwargs):

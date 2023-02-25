@@ -31,8 +31,15 @@ def relogin_dec(func: callable):
 class Worker:
 
     def __init__(self, *, proxy=None, login, password):
+        self.is_login = None
+        self.client = None
+        self.proxy = proxy
+        self.set_account(proxy=proxy, login=login, password=password)
+
+    def set_account(self, *, proxy=None, login, password):
         self.client = Client(proxy=proxy)
         self.is_login = self.login(login, password)
+        self.proxy = proxy if proxy else self.proxy
         assert self.is_login, f"Account {login} cannot log in"
 
     @property
