@@ -34,6 +34,8 @@ class Worker:
         self.is_login = None
         self.client = None
         self.proxy = proxy
+        self.__login = login
+        self.__password = password
         self.set_account(proxy=proxy, login=login, password=password)
 
     def set_account(self, *, proxy=None, login, password):
@@ -41,6 +43,8 @@ class Worker:
         self.is_login = self.login(login, password)
         self.proxy = proxy if proxy else self.proxy
         assert self.is_login, f"Account {login} cannot log in"
+        self.__login = login
+        self.__password = password
 
     @property
     def username(self):
@@ -53,7 +57,7 @@ class Worker:
         self.client.logout()
 
     def relogin(self):
-        self.client.relogin()
+        self.set_account(proxy=self.proxy, login=self.__login, password=self.__password)
 
     @relogin_dec
     def get_user_followers(self, username: str):

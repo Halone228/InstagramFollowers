@@ -1,11 +1,13 @@
-from peewee import SqliteDatabase, Model, TextField
+from peewee import PostgresqlDatabase, Model, TextField
 from cfg import tempory_db_name
 
 
-class ResultItemModel(Model):
+class BaseModel(Model):
     class Meta:
-        database = SqliteDatabase(tempory_db_name)
+        database = PostgresqlDatabase('instagram',user='instagram',password='asdasd1234',host='localhost',port=5432)
 
+
+class ResultItemModel(BaseModel):
     url = TextField(primary_key=True)
     word = TextField()
     username = TextField()
@@ -19,10 +21,7 @@ class ResultItemModel(Model):
         return cls.select().where(ResultItemModel.url == url).exists()
 
 
-class Checked(Model):
-    class Meta:
-        database = SqliteDatabase(tempory_db_name)
-
+class Checked(BaseModel):
     url = TextField(primary_key=True)
 
     @classmethod
