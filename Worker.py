@@ -6,7 +6,11 @@ from instagrapi import types as igaTypes
 from instagrapi import Client
 from instagrapi import exceptions
 from fake_useragent import UserAgent
+from timezone_api import TimeZoneApi
 
+
+timezone_token = ''
+t_api = TimeZoneApi(timezone_token)
 
 def relogin_dec(func: callable):
     def wrapper(self, *args, **kwargs):
@@ -43,12 +47,20 @@ class Worker:
         self.set_account(proxy=proxy, login=login, password=password)
 
     def set_account(self, *, proxy=None, login, password):
-        self.client = Client(proxy=proxy)
-        self.is_login = self.login(login, password)
+        self.client = Client()
         self.proxy = proxy if proxy else self.proxy
+        self.configure_proxy()
+        self.is_login = self.login(login, password)
         assert self.is_login, f"Account {login} cannot log in"
         self.__login = login
         self.__password = password
+        
+    def configure_proxy(self):
+        self.client.set_proxy(self.proxy)
+        t_data = t_api.get_info(self.proxy)
+        self.client.set_locale(t_data['locale'])
+        self.client.set_country_coee(t_data['num_prefix'])
+        self.cliemt.set_timezone_offset(t_data['offset_seconds'])
 
     @property
     def username(self):
