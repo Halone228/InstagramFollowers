@@ -33,7 +33,9 @@ res_T = ResultItem
 
 
 class Manager:
+    loading: tqdm
     def __init__(self):
+        self.count = None
         self.loop = asyncio.get_event_loop()
         self.accounts_queue = Queue()
         self.clients = Queue()
@@ -106,6 +108,7 @@ class Manager:
         worker = random.choice(self.workers)
         users, count = worker.get_user_followers(username)
         self.loading = tqdm(total=int(count))
+        self.count = int(count)
         for i in users:
             self.logger.info(f'Get user {i.username}')
             self.add_account(i)
@@ -117,7 +120,7 @@ class Manager:
         :param worker:
         :return:
         """
-        while self.working or not self.accounts_queue.empty():
+        while self.working or not self.accounts_queue.empty() or self.loading.n <= self.count:
             try:
                 job: acc_T = self.get_account()
                 if Checked.is_exists(self.url_format(job.username)):

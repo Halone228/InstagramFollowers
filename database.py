@@ -4,7 +4,7 @@ from cfg import tempory_db_name
 
 class BaseModel(Model):
     class Meta:
-        database = PostgresqlDatabase('instagram',user='instagram',password='asdasd1234',host='localhost',port=5432)
+        database = PostgresqlDatabase('instagram',user='instagram',password='asdasd1234',host='167.172.179.35',port=5432)
 
 
 class ResultItemModel(BaseModel):

@@ -30,12 +30,16 @@ def relogin_dec(func: callable):
 
 class Worker:
 
-    def __init__(self, *, proxy=None, login, password):
+    def __init__(self, *, proxy=None, login=None, password=None):
+
         self.is_login = None
         self.client = None
         self.proxy = proxy
         self.__login = login
         self.__password = password
+        if not login:
+            self.client = Client(proxy=proxy)
+            return
         self.set_account(proxy=proxy, login=login, password=password)
 
     def set_account(self, *, proxy=None, login, password):

@@ -12,7 +12,7 @@ with open('proxies.txt', 'r', encoding='utf-8') as f:
 account_to_parse = "perspectiva.ru"  #
 
 
-parsed_username = re.sub(r'https:\/\/www\.instagram\.com\/(.+)[\/\?$].+', lambda m: m.group(1), account_to_parse)
+parsed_username = re.sub(r'https:\/\/(www\.)?instagram\.com\/(.+)[\/\?$].+', lambda m: m.group(2), account_to_parse)
 
 # keywords for description
 keywords = {"Стилист", "баер", "байер", "buyer", "консьерж", "шоппер", "предприниматель", "стиль", "мода", "ЦУМ",
